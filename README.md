@@ -20,6 +20,11 @@ The pipeline covers both **cytosolic** and **mitochondrial** tRNAs, starting fro
 4. **Validation / typing** — `tRNAscan-SE` on the assembled contigs (`-E` cytosolic, `-M mammal` mito) → isotype + anticodon calls.
 5. **Non-canonical screen** (`scan_noncanonical_anticodons.sh`, genome-free) — reads each tRNA locus's 3 anticodon genomic positions (from the public `.ss` coordinates) directly from the BAM pileup and reports **every** anticodon-position alt allele supported by ≥3 quality reads (MAPQ≥20, baseQ≥20), with VAF / depth / strand. **No VAF cutoff** — real-vs-error is judged by read quality + strand balance, not allele frequency (a high-quality low-frequency allele is exactly the signal of interest). See Findings.
 
+## Two outputs (reports)
+
+1. **Anticodon / tRNA-count report** — produced by **SAUTE assembly → tRNAscan-SE → `anticodon_stats.sh`**: per-sample counts of every tRNA isotype/anticodon (cytosolic + mito). Consolidated across samples in [`results/anticodon_counts_summary.tsv`](results/anticodon_counts_summary.tsv). *This is what the SAUTE + tRNAscan-SE branch is for.*
+2. **Anticodon-switch calls** — produced by the **pileup scanner + gnomAD**: per-locus anticodon variants with VAF / strand / depth and a forbidden-set flag (`results/*.anticodon_variants.tsv`). *Evidence-grade variant layer; does not use SAUTE.*
+
 ## Main entry point
 
 ```bash
