@@ -1,0 +1,19 @@
+# data / outputs — never commit sequence data
+*.bam
+*.bai
+*.cram
+*.fa
+*.fasta
+*.fa.gz
+*.fq
+*.fq.gz
+*.fastq
+*.fastq.gz
+*.gfa
+*.tbl
+*.out
+*.ss
+*.nohup.log
+*.pid
+# allow the small curated reference list if ever added explicitly
+!data/**

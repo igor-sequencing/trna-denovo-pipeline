@@ -1,0 +1,10 @@
+name: trna-pipeline
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - trnascan-se=2.0.12   # pulls infernal=1.1.5 (cmsearch/cmscan)
+  - bbmap                # bbduk.sh k-mer read filtering
+  - samtools             # BAM region extraction / fastq conversion
+  - seqkit               # FASTA/FASTQ utilities
+  - skesa                # provides the SAUTE targeted assembler (saute / saute_prot)
