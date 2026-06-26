@@ -28,6 +28,15 @@ The pipeline covers both **cytosolic** and **mitochondrial** tRNAs, starting fro
 
 Runs the whole thing for one BAM (cytosolic + mito + anticodon summary + non-canonical screen). Auto-detects the MT contig name (`MT`/`chrMT`/`chrM`/`M`) and reconciles GtRNAdb `chr`-prefixed coordinates to the BAM's contig naming.
 
+### Lean variant-calling paths (recommended for the anticodon-switch question)
+
+The non-canonical anticodon calls do **not** require SAUTE assembly or mito reconstruction — they come from a direct **read pileup at anticodon positions** + gnomAD. Two entry points:
+
+- **From a BAM:** `./scripts/scan_noncanonical_anticodons.sh sample.bam` — pileup the 3 anticodon positions of every tRNA gene, report every quality-supported switch (VAF / strand / depth, **no VAF floor**). Genome-free.
+- **From FASTQ:** `GENOME=GRCh38.fa ./scripts/scan_trna_fastq.sh R1.fq.gz R2.fq.gz` — BBDuk k-mer filter (mates kept) → bwa-mem2 align **only the filtered reads** to the full genome → the same pileup. No whole-FASTQ alignment, no SAUTE. This works because **MAPQ is a per-read property**: aligning the ~10⁵ filtered reads against the full genome gives each read the same MAPQ/placement as a full-WGS alignment (preserving paralog discrimination), but in minutes.
+
+Validated end-to-end: the FASTQ path reproduces the BAM path's calls (SQ326CT3 — `ATT` 9%, `GTG` 35%, `CCT→TCT` — identical).
+
 ## Hard-won parameters (read before changing)
 
 - **SAUTE `--kmer 31 --secondary_kmer 21`** for cytosolic tRNAs. SAUTE's *automatic* kmer = ½ read length (75 for 150 bp reads), which **exceeds the length of most tRNAs** (reference min 59 bp; mito tRNAs 59–75 bp) — short tRNAs then produce no usable k-mers and silently fail to assemble. Forcing a small kmer fixes it (recovered 22/22 mito + full cytosolic isotype set vs only the long Leu/Ser/Tyr isotypes at kmer 75). SAUTE **requires both** `--kmer` and `--secondary_kmer` together.
@@ -49,6 +58,7 @@ Runs the whole thing for one BAM (cytosolic + mito + anticodon summary + non-can
 | `run_cmscan.sh` | Infernal cmscan confirmation of retrieved reads against tRNA CMs |
 | `run_cyto_trnascan.sh` | `tRNAscan-SE -E` on cytosolic assembled contigs |
 | `scan_noncanonical_anticodons.sh` | **genome-free** non-canonical anticodon screen from a BAM (pileup vs public `.ss` anticodon coords; no VAF floor) |
+| `scan_trna_fastq.sh` | **FASTQ-native lean path**: BBDuk filter (mates kept) → bwa-mem2 align subset to full genome (`$GENOME`) → anticodon-switch pileup. No whole-FASTQ alignment, no SAUTE |
 | `anticodon_stats.sh` | per-sample anticodon-count table (cytosolic + mito) from tRNAscan output |
 | `run_trna_pipeline.sh` | **end-to-end** BAM → cytosolic + mito → anticodons + non-canonical screen |
 
